@@ -26,13 +26,13 @@ const client = new MongoClient(uri, {
 });
 client.connect((err) => {
   const serviceCollection = client.db("creativeAgency").collection("services");
+  const orderCollection = client.db("creativeAgency").collection("orders");
 
   //Add new Service to database
   app.post("/addService", (req, res) => {
     const file = req.files.file;
     const title = req.body.title;
     const description = req.body.description;
-    console.log(file, title, description);
     const newImg = file.data;
     const encImg = newImg.toString("base64");
 
@@ -60,8 +60,14 @@ client.connect((err) => {
       .find({ _id: ObjectID(req.params.id) })
       .toArray((err, documents) => {
         res.send(documents);
-        console.log(documents);
       });
+  });
+  //Post Order to Database
+  app.post("/postOrder", (req, res) => {
+    const newOrder = req.body;
+    orderCollection.insertOne(newOrder).then((result) => {
+      res.send(result.insertedCount > 0);
+    });
   });
 });
 
