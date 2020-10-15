@@ -27,15 +27,19 @@ const client = new MongoClient(uri, {
 client.connect((err) => {
   const serviceCollection = client.db("creativeAgency").collection("services");
   const orderCollection = client.db("creativeAgency").collection("orders");
+  const adminCollection = client.db("creativeAgency").collection("admins");
+  const reviewCollection = client.db("creativeAgency").collection("reviews");
 
+  //API's For Services
   //Add new Service to database
   app.post("/addService", (req, res) => {
     const file = req.files.file;
     const title = req.body.title;
     const description = req.body.description;
+
+    //encodeing Image
     const newImg = file.data;
     const encImg = newImg.toString("base64");
-
     var image = {
       contentType: req.files.file.mimetype,
       size: req.files.file.size,
@@ -54,7 +58,7 @@ client.connect((err) => {
       res.send(documents);
     });
   });
-
+  // Get The Orderd Service's Name
   app.get("/serviceOrder/:id", (req, res) => {
     serviceCollection
       .find({ _id: ObjectID(req.params.id) })
@@ -62,11 +66,78 @@ client.connect((err) => {
         res.send(documents);
       });
   });
+
+  //API's for Orders
   //Post Order to Database
   app.post("/postOrder", (req, res) => {
+    const file = req.files.file;
+    const name = req.body.name;
+    const email = req.body.email;
+    const project = req.body.project;
+    const details = req.body.details;
+    const price = req.body.price;
+    const status = req.body.status;
+
+    //encodeing Image
+    const newImg = file.data;
+    const encImg = newImg.toString("base64");
+    var image = {
+      contentType: req.files.file.mimetype,
+      size: req.files.file.size,
+      img: Buffer.from(encImg, "base64"),
+    };
+    orderCollection
+      .insertOne({ name, email, project, details, price, status, image })
+      .then((result) => {
+        res.send(result.insertedCount > 0);
+      });
+  });
+  //Get Order Data
+  app.get("/getServiceByEmail", (req, res) => {
+    orderCollection
+      .find({ email: req.query.email })
+      .toArray((err, documents) => {
+        res.send(documents);
+      });
+  });
+
+  //API's for Admins
+  //Make new Admin
+  app.post("/makeAdmin", (req, res) => {
     const newOrder = req.body;
-    orderCollection.insertOne(newOrder).then((result) => {
+    adminCollection.insertOne(newOrder).then((result) => {
       res.send(result.insertedCount > 0);
+    });
+  });
+
+  //API's for Review
+  //Add new Review with Image to database
+  app.post("/addReview", (req, res) => {
+    const file = req.files.file;
+    const name = req.body.name;
+    const designation = req.body.designation;
+    const comment = req.body.comment;
+
+    //encodeing Image
+    const newImg = file.data;
+    const encImg = newImg.toString("base64");
+    var image = {
+      contentType: req.files.file.mimetype,
+      size: req.files.file.size,
+      img: Buffer.from(encImg, "base64"),
+    };
+
+    reviewCollection
+      .insertOne({ name, designation, comment, image })
+      .then((result) => {
+        res.send(result.insertedCount > 0);
+      });
+  });
+
+  //Get reviews to frontEnd
+  app.get("/reviews", (req, res) => {
+    reviewCollection.find({}).toArray((err, documents) => {
+      res.send(documents);
     });
   });
 });
