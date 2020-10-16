@@ -92,12 +92,32 @@ client.connect((err) => {
         res.send(result.insertedCount > 0);
       });
   });
-  //Get Order Data
+  //Get Order Data By Email
   app.get("/getServiceByEmail", (req, res) => {
     orderCollection
       .find({ email: req.query.email })
       .toArray((err, documents) => {
         res.send(documents);
+      });
+  });
+  //Get All Order Data
+  app.get("/getAllService", (req, res) => {
+    orderCollection.find({}).toArray((err, documents) => {
+      res.send(documents);
+    });
+  });
+  //Update Order Status
+  app.patch("/updateStatus", (req, res) => {
+    console.log(req.query.id);
+    const newStatus = req.body.status;
+    orderCollection
+      .updateOne(
+        { _id: ObjectID(req.query.id) },
+        { $set: { status: newStatus } }
+      )
+      .then((result) => {
+        console.log(result);
+        res.send(result.modifiedCount > 0);
       });
   });
 
@@ -108,6 +128,14 @@ client.connect((err) => {
     adminCollection.insertOne(newOrder).then((result) => {
       res.send(result.insertedCount > 0);
     });
+  });
+  //Find Admin by Email
+  app.get("/findAdminByEmail", (req, res) => {
+    adminCollection
+      .find({ email: req.query.email })
+      .toArray((err, documents) => {
+        res.send(documents);
+      });
   });
 
   //API's for Review
